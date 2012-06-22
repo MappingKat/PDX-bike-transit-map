@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Portland Bike to Transit Interactive Map</title>
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js' type='text/javascript'></script>
+    <script src='wax/ext/modestmaps.min.js' type='text/javascript'></script>
+    <script src='wax/dist/wax.mm.js' type='text/javascript'></script>
+    <link href='wax/theme/controls.css' rel='stylesheet' type='text/css' />
+  <style type='text/css'>
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    p {
+      line-height: 20px;
+    }
+    a {
+      color: #29A1E1;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .layerswitch {
+		list-style: none;
+		padding: 0;
+    }
+    .layerswitch li {
+		display: inline;
+    }
+    .layerswitch li a {
+		float: left;
+		display: block;
+		height: 30px;
+		width: 150px;
+		border: 1px solid #333;
+		margin-right: 10px;
+		text-align: center;
+		line-height: 30px;
+		color: #fff;
+		text-decoration: none;
+    }
+    .layerswitch li a.active {
+    border-color: #813;
+    }
+    #mymap {
+      position: absolute;
+      top: 0;
+      right: 400px;
+      left: 0;
+      height: 100%;
+    }
+    #sidebar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      width: 359px;
+      background: #111;
+      color: #fff;
+      border-left:1px solid #000;
+      padding: 20px;
+    }
+    .source {
+      font-size: 80%;
+    }
+    .wax-tooltip {
+    right: 10px;
+    left: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id='sidebar'>
+    <h2>Portland Bike to Transit Map</h2>
+    <p>This handy map can display bike routes, transit stops, and transit routes <i>at the same time</i>, so you can find your own way to bike to transit stops.
+    
+    <P style="font-size:.8em;"><i>Hover over or click on stops and routes for more info.</i> If you like this, you might also like my <a href="http://tiles.mapbox.com/saxbarm/map/map-xdgh3mb4">Neon PDX Bike Route Map</a> or another project I'm working on, TriMet's <a href="http://rtp.trimet.org">Regional Trip Planner</a> (beta), which can plan biking and bike-to-transit trips. </p>
+    
+    <P style="font-size:.8em;">The original version of this site was awarded "Most Original App" in the second round of <a href="http://civicapps.org/news/civicapps-awards-congrats-round-2-winners-and-runners">Portland's CivicApps contest</a>. Thank you! And thank you also to the awesome teams that work on <a href="http://www.mapbox.com/">MapBox</a>, <a href="http://mapbox.com/tilemill/">TileMill</a> and <a href="http://mapbox.com/wax/">Wax</a>, who provided me the opportunity to finally get this project up and running again!</p>
+
+    <p><span class='source'>Sources: <a href='http://www.openstreetmap.org'>OpenStreetMap</a> (bike routes from 3/31/12, basemap styled by <a href="http://www.mapbox.com/">MapBox</a>), transit data from <a href='http://www.trimet.org'/>TriMet</a>. See any errors? Let me know! I can edit OSM or do an update: saxbarm at gmail dot com / twitter <a href="http://www.twitter.com/pdxmele">@pdxmele</a>.</p>
+    
+    <p></p>
+<ul class="layerswitch">
+  <li><a id="saxbarm.pdx-bike-routes" href="#">Only bike routes</a></li>
+  <li><a id="saxbarm.trimet-routes,saxbarm.trimet-stops" href="#">Only TriMet</a></li>
+  <li><a id="saxbarm.trimet-routes,saxbarm.pdx-bike-routes,saxbarm.trimet-stops" class="active" href="#">Show All</a></li>
+</ul>
+<p></p>
+
+</div>
+<div id='mymap'>
+</div>
+<script type='text/javascript'>
+    // Declare variables
+    var m, mm, interaction, legend;
+    // Set initial map layer
+    var layer = 'saxbarm.trimet-routes,saxbarm.pdx-bike-routes,saxbarm.trimet-stops';
+    // Static part of the map url
+    var urlBase = 'http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets,';
+    // Full map url
+    var url = urlBase + layer + '.jsonp';
+    
+  wax.tilejson(url, function(tilejson) {
+    mm = com.modestmaps;
+    m = new mm.Map('mymap',
+    new wax.mm.connector(tilejson));
+    //legend
+    legend = wax.mm.legend(m, tilejson).appendTo(m.parent);
+    //zoomer
+    wax.mm.zoomer(m, tilejson).appendTo(m.parent);
+    interaction = wax.mm.interaction(m, tilejson);    
+    // Set the initial center and zoom level
+    m.setCenterZoom(new mm.Location(45.52, -122.68), 15);
+});
+
+  $('#sidebar ul.layerswitch a').click(function (e) {
+    e.preventDefault();
+    layer = this.id;
+    $('#sidebar ul.layerswitch a').removeClass('active');
+    $(this).addClass('active');
+    refreshMap();
+  });
+    
+  function refreshMap() {
+    url = urlBase + layer + '.jsonp';
+    wax.tilejson(url, function(tilejson) {
+      m.setLayerAt(0, new wax.mm.connector(tilejson));
+      interaction.remove();
+      interaction = wax.mm.interaction(m, tilejson);
+    });
+  }
+</script>
+</body>
+</html>
